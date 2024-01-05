@@ -25,29 +25,38 @@ class Server:
             client_handler.start()
 
     def handle_client(self, conn):
+        print('handle_client start')
         print(f"Connection from {conn.getpeername()}")
-
         command = conn.recv(1024).decode("utf-8")
-        
-        if command == "LIST_FILES":
-            self.send_file_list(conn)
-        else:
-            filepath = os.path.join(self.files_directory, command)
-
-            with open(filepath, "rb") as file:
+        # if command == "LIST_FILES":
+        #     self.send_file_list(conn)
+        # else:
+            # self.send_invalid_command_response(conn)
+        filepath = os.path.join(self.files_directory, command)
+        with open(filepath, "rb") as file:
+            filedata = file.read(1024)
+            while filedata:
+                conn.send(filedata)
                 filedata = file.read(1024)
-                while filedata:
-                    conn.send(filedata)
-                    filedata = file.read(1024)
-
-            print(f"Sent {command} to {conn.getpeername()}")
-            
+        print(f"Sent {command} to {conn.getpeername()}")
+        print('handle_client end')    
         conn.close()
 
-    def send_file_list(self, conn):
-        files = os.listdir(self.files_directory)
-        file_list = ",".join(files)
-        conn.send(file_list.encode("utf-8"))
+    # def send_file_list(self, conn):
+    #     print('send_file_list start')
+    #     files = os.listdir(self.files_directory)
+    #     file_list = ",".join(files)
+    #     conn.send(file_list.encode("utf-8"))
+    #     print('send_file_list end')
+
+    def send_file(self, conn, filename):
+        print('send_file start')
+        file = open(filename, 'rb')
+        filedata = file.read(1024)
+        print(filedata)
+        conn.send(filedata)
+        print("Data has been transmitted successfully")
+        print('send_file_list end')
 
 if __name__ == "__main__":
     host = "127.0.0.1"
